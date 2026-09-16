@@ -29,10 +29,87 @@
   }
   .serif { font-family: 'Source Serif 4', Georgia, serif; }
 
-  .app {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+  /* ---------- Floating launcher ---------- */
+  #launcher {
+    position: fixed;
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    right: calc(28px + env(safe-area-inset-right, 0px));
+    width: 76px; height: 76px; border-radius: 50%;
+    background: var(--navy); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 28px rgba(22, 41, 79, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    z-index: 9998;
+  }
+  #launcher:hover { transform: scale(1.06); box-shadow: 0 10px 32px rgba(22, 41, 79, 0.55); }
+  #launcher svg { width: 34px; height: 34px; }
+  #launcher .pulse-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid var(--gold); opacity: 0;
+    animation: pulseRing 2.2s ease-out infinite;
+  }
+  @keyframes pulseRing {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #launcher .pulse-ring { animation: none; }
+  }
+
+  #launcherLabel {
+    position: fixed;
+    bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    right: calc(112px + env(safe-area-inset-right, 0px));
+    background: var(--paper); color: var(--navy);
+    padding: 11px 16px; border-radius: 12px;
+    font-weight: 600; font-size: 14px;
+    box-shadow: 0 6px 20px rgba(22, 41, 79, 0.2);
+    border: 1px solid #E6E8F0;
+    white-space: nowrap;
+    animation: labelFloat 2.4s ease-in-out infinite;
+    z-index: 9997;
+    pointer-events: none;
+  }
+  #launcherLabel::after {
+    content: ""; position: absolute; top: 50%; right: -6px;
+    transform: translateY(-50%) rotate(45deg);
+    width: 12px; height: 12px; background: var(--paper);
+    border-right: 1px solid #E6E8F0; border-bottom: 1px solid #E6E8F0;
+  }
+  @keyframes labelFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #launcherLabel { animation: none; }
+  }
+  @media (max-width: 600px) {
+    #launcherLabel { display: none; }
+  }
+
+  /* ---------- Panel ---------- */
+  #panel {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 380px; max-width: calc(100vw - 32px);
+    height: 620px; max-height: calc(100vh - 48px);
+    background: var(--paper); border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(22, 41, 79, 0.25);
+    display: none; flex-direction: column; overflow: hidden;
+    z-index: 9999;
+  }
+  #panel.open { display: flex; }
+
+  @media (max-width: 600px) {
+    #panel {
+      right: 0; left: 0; top: 0; bottom: 0;
+      width: 100%; max-width: 100%;
+      height: 100dvh; max-height: 100dvh;
+      border-radius: 0;
+    }
+    #launcher {
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      right: calc(16px + env(safe-area-inset-right, 0px));
+    }
   }
 
   header {
@@ -43,7 +120,16 @@
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
+    border-bottom: 3px solid var(--gold);
   }
+  header .titles { flex: 1; min-width: 0; }
+  header .close {
+    background: none; border: none; color: rgba(255,255,255,0.8);
+    font-size: 26px; line-height: 1; cursor: pointer;
+    padding: 4px; margin: -4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  header .close:hover { color: #fff; }
   .avatar {
     width: 38px; height: 38px;
     border-radius: 50%;
@@ -168,12 +254,25 @@
 </head>
 <body>
 
-<div class="app">
+<div id="launcherLabel">💬 Ask us anything!</div>
+<button id="launcher" aria-label="Open chat">
+  <span class="pulse-ring"></span>
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 4 L42 10 V24 C42 34 34.5 41.5 24 45 C13.5 41.5 6 34 6 24 V10 Z" fill="none" stroke="#C89B3C" stroke-width="2.5"/>
+    <rect x="14" y="27" width="4" height="8" rx="1" fill="#C89B3C"/>
+    <rect x="20" y="22" width="4" height="13" rx="1" fill="#C89B3C"/>
+    <rect x="26" y="17" width="4" height="18" rx="1" fill="#C89B3C"/>
+    <rect x="32" y="12" width="4" height="23" rx="1" fill="#C89B3C"/>
+  </svg>
+</button>
+
+<div id="panel" class="app">
   <header>
     <img class="avatar" src="https://www.leads.edu.pk/wp-content/uploads/2021/02/cropped-cropped-LLU-LOGOf-1.png" alt="Leads Logo">
-    <div>
+    <div class="titles">
       <h1>Leads University — Islamabad Campus</h1>
     </div>
+    <button class="close" id="closeBtn" aria-label="Close chat">&times;</button>
   </header>
 
   <div class="messages" id="messages">
@@ -201,11 +300,29 @@
   var input = document.getElementById('input');
   var sendBtn = document.getElementById('sendBtn');
   var composer = document.getElementById('composer');
+  
+  var launcher = document.getElementById('launcher');
+  var launcherLabel = document.getElementById('launcherLabel');
+  var panel = document.getElementById('panel');
+  var closeBtn = document.getElementById('closeBtn');
 
   var sessionId = null;
   var lastMessageAt = null;
   var pollTimer = null;
   var typingEl = null;
+
+  launcher.addEventListener('click', function() {
+    panel.classList.add('open');
+    launcher.style.display = 'none';
+    if (launcherLabel) launcherLabel.style.display = 'none';
+    input.focus();
+  });
+
+  closeBtn.addEventListener('click', function() {
+    panel.classList.remove('open');
+    launcher.style.display = 'flex';
+    if (launcherLabel && window.innerWidth > 600) launcherLabel.style.display = 'block';
+  });
 
   function fmtTime(iso) {
     try {
