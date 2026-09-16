@@ -1,6 +1,9 @@
-   {
-     "name": "leads-widget-demo",
-     "scripts": {
-       "start": "npx serve -s . -l $PORT"
-     }
-   }
+{
+  "name": "leads-widget-demo",
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "scripts": {
+    "start": "serve -s . -l $PORT"
+  }
+}
