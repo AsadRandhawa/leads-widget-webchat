@@ -30,8 +30,6 @@
   .serif { font-family: 'Source Serif 4', Georgia, serif; }
 
   .app {
-    max-width: 620px;
-    margin: 0 auto;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -78,13 +76,18 @@
   }
   .msg-row { display: flex; }
   .msg-row.user { justify-content: flex-end; }
-  .bubble {
+  .msg-wrap {
     max-width: 78%;
+    display: flex;
+    flex-direction: column;
+  }
+  .bubble {
     padding: 11px 15px;
     border-radius: 16px;
     font-size: 14.5px;
     line-height: 1.5;
     white-space: pre-wrap;
+    word-break: break-word;
   }
   .msg-row.agent .bubble {
     background: var(--bubble-agent);
@@ -220,6 +223,7 @@
     time.className = 'msg-time';
     time.textContent = fmtTime(createdAt || new Date().toISOString());
     var wrap = document.createElement('div');
+    wrap.className = 'msg-wrap';
     wrap.appendChild(bubble);
     wrap.appendChild(time);
     row.appendChild(wrap);
