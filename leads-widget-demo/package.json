@@ -1,6 +1,0 @@
-   {
-     "name": "leads-widget-demo",
-     "scripts": {
-       "start": "npx serve -s . -l $PORT"
-     }
-   }
