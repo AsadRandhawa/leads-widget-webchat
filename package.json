@@ -4,6 +4,6 @@
     "serve": "^14.2.0"
   },
   "scripts": {
-    "start": "serve -s . -l $PORT"
+    "start": "serve --cors -s . -l $PORT"
   }
 }
